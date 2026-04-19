@@ -412,12 +412,76 @@
     font-weight: 700;
     letter-spacing: 2px;
   }
+
+  /* === MÜZİK BALONCUĞU === */
+  #music-bubble {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #music-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f48fb1, #e91e8c);
+    box-shadow: 0 4px 18px rgba(233,30,140,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: bubblePulse 2.5s ease-in-out infinite;
+  }
+  #music-bubble:hover #music-circle {
+    transform: scale(1.1);
+    box-shadow: 0 8px 28px rgba(233,30,140,0.55);
+  }
+  #music-label {
+    background: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #c2185b;
+    box-shadow: 0 2px 10px rgba(233,30,140,0.2);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  @keyframes bubblePulse {
+    0%,100% { box-shadow: 0 4px 18px rgba(233,30,140,0.4); }
+    50%      { box-shadow: 0 4px 28px rgba(233,30,140,0.7), 0 0 0 8px rgba(233,30,140,0.08); }
+  }
+  #music-bubble.playing #music-circle {
+    background: linear-gradient(135deg, #a5d6a7, #43a047);
+    animation: spin 4s linear infinite;
+    box-shadow: 0 4px 18px rgba(67,160,71,0.5);
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  #music-bubble.playing #music-label { color: #2e7d32; }
 </style>
 </head>
 <body>
 
 <!-- Floating decorations -->
 <div id="floaties"></div>
+
+<!-- Müzik -->
+<audio id="bg-music" src="music.mp3" loop></audio>
+<div id="music-bubble" onclick="toggleMusic()">
+  <div id="music-circle">🎵</div>
+  <div id="music-label">Müziği Başlat</div>
+</div>
 
 <div id="loading">
   <div class="loading-frog">🐸</div>
@@ -717,6 +781,25 @@ function createFloaties() {
     el.style.animationDuration = (10 + Math.random() * 20) + 's';
     el.style.animationDelay = (Math.random() * 15) + 's';
     wrap.appendChild(el);
+  }
+}
+
+// Müzik
+function toggleMusic() {
+  const audio = document.getElementById('bg-music');
+  const bubble = document.getElementById('music-bubble');
+  const label = document.getElementById('music-label');
+  const circle = document.getElementById('music-circle');
+  if (audio.paused) {
+    audio.play();
+    bubble.classList.add('playing');
+    label.textContent = 'Müziği Durdur';
+    circle.textContent = '🎶';
+  } else {
+    audio.pause();
+    bubble.classList.remove('playing');
+    label.textContent = 'Müziği Başlat';
+    circle.textContent = '🎵';
   }
 }
 
