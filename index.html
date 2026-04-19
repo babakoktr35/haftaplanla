@@ -350,6 +350,68 @@
     z-index: 10;
     letter-spacing: 0.3px;
   }
+
+  /* === LIVE PREVIEW === */
+  .preview-section {
+    max-width: 1000px;
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+    position: relative;
+    z-index: 10;
+  }
+  .preview-section-title {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.3rem;
+    color: #c2185b;
+    text-align: center;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+  }
+  .live-preview-box {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 6px 28px rgba(233,30,140,0.13);
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  .lp-caption {
+    padding: 14px 20px;
+    text-align: center;
+    font-family: 'Pacifico', cursive;
+    font-size: 1.1rem;
+    color: white;
+  }
+  .lp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Nunito', sans-serif;
+    min-width: 560px;
+  }
+  .lp-table th {
+    padding: 9px 8px;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    color: white;
+    white-space: nowrap;
+  }
+  .lp-table td {
+    padding: 7px 8px;
+    font-size: 12px;
+    vertical-align: top;
+    border-top: 1px solid #f0f0f0;
+    min-width: 80px;
+  }
+  .lp-time { font-weight: 800; font-size: 10px; margin-bottom: 2px; }
+  .lp-act  { font-weight: 700; color: #333; }
+  .lp-empty { color: #ddd; text-align: center; font-size: 11px; }
+  .lp-footer-bar {
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
 </style>
 </head>
 <body>
@@ -380,6 +442,19 @@
   <div class="dl-bar">
     <button class="dl-btn btn-pdf" onclick="downloadPDF()">📄 PDF İndir</button>
     <button class="dl-btn btn-jpg" onclick="downloadJPG()">🖼️ JPG İndir</button>
+  </div>
+</div>
+
+<!-- LIVE PREVIEW SECTION -->
+<div class="preview-section">
+  <div class="preview-section-title">🐸 Tablo Önizlemesi 🐸</div>
+  <div class="live-preview-box">
+    <div class="lp-caption" id="lp-caption"></div>
+    <table class="lp-table">
+      <thead id="lp-thead"></thead>
+      <tbody id="lp-tbody"></tbody>
+    </table>
+    <div class="lp-footer-bar" id="lp-footer"></div>
   </div>
 </div>
 
@@ -426,6 +501,7 @@ function setTheme(t) {
   currentTheme = t;
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tb-'+t).classList.add('active');
+  updateLivePreview();
 }
 
 function buildGrid() {
@@ -470,10 +546,55 @@ function addRow(dayIdx, startVal='', endVal='', actVal='') {
     <button class="del-btn" onclick="delRow(this)">✕</button>
   `;
   list.appendChild(row);
+  row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateLivePreview));
+  updateLivePreview();
 }
 
 function delRow(btn) {
   btn.closest('.activity-row').remove();
+  updateLivePreview();
+}
+
+function updateLivePreview() {
+  const schedule = getSchedule();
+  const theme = THEMES[currentTheme];
+
+  const cap = document.getElementById('lp-caption');
+  cap.style.background = theme.title;
+  cap.innerHTML = `${theme.emoji} Haftalık Program ${theme.emoji}`;
+
+  const maxActs = Math.max(1, ...schedule.map(s => s.acts.length));
+
+  const thead = document.getElementById('lp-thead');
+  let hrow = '<tr>';
+  schedule.forEach(s => {
+    hrow += `<th style="background:${theme.th};border:1px solid ${theme.border};">${s.emoji} ${s.day}</th>`;
+  });
+  hrow += '</tr>';
+  thead.innerHTML = hrow;
+
+  const tbody = document.getElementById('lp-tbody');
+  tbody.innerHTML = '';
+  for(let r = 0; r < maxActs; r++) {
+    const tr = document.createElement('tr');
+    tr.style.background = r % 2 === 0 ? theme.alt : 'white';
+    schedule.forEach(s => {
+      const td = document.createElement('td');
+      td.style.borderTop = `1px solid ${theme.border}`;
+      const a = s.acts[r];
+      if(a) {
+        td.innerHTML = `<div class="lp-time" style="color:${theme.title};">${fmtTime(a.start)}${a.end?' – '+fmtTime(a.end):''}</div><div class="lp-act">${a.act}</div>`;
+      } else {
+        td.innerHTML = `<div class="lp-empty">—</div>`;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+
+  const footer = document.getElementById('lp-footer');
+  footer.style.color = theme.th;
+  footer.innerHTML = `${theme.frog} ${theme.frog} ${theme.frog} &nbsp; Eylül Kızılkaya için düzenlenmiştir &nbsp; ${theme.frog} ${theme.frog} ${theme.frog}`;
 }
 
 function getSchedule() {
@@ -602,8 +723,8 @@ function createFloaties() {
 // Init
 buildGrid();
 createFloaties();
-// Open Monday by default
 document.querySelectorAll('.day-card')[0].classList.add('open');
+updateLivePreview();
 </script>
 </body>
 </html>
